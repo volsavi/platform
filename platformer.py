@@ -1,15 +1,15 @@
 import pygame
 import random
 
-# Инициализация Pygame
+# Ініціалізація Pygame
 pygame.init()
 
-# Параметры окна
+# Параметри вікна
 WIDTH, HEIGHT = 1200, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Платформер")
 
-# Цвета
+# Кольори
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
@@ -19,37 +19,37 @@ RED = (255, 0, 0)
 # Шрифт
 font = pygame.font.Font(None, 36)
 
-# Загрузка иконок
+# Завантаження іконок
 door_icon = pygame.image.load("door.png")
 door_icon = pygame.transform.scale(door_icon, (50, 70))
 
 coin_icon = pygame.image.load("coin.png")
 coin_icon = pygame.transform.scale(coin_icon, (30, 30))
 
-# Загрузка фона
+# Завантаження фону
 background = pygame.image.load("background.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
-# Загрузка изображений для игрока
+# Завантаження зображень для гравця
 player_idle = pygame.image.load("player_idle.png")
 player_walk1 = pygame.image.load("player_walk1.png")
 player_walk2 = pygame.image.load("player_walk2.png")
-player_walk1_left = pygame.transform.flip(player_walk1, True, False)  # Зеркальное изображение для влево
-player_walk2_left = pygame.transform.flip(player_walk2, True, False)  # Зеркальное изображение для влево
+player_walk1_left = pygame.transform.flip(player_walk1, True, False)  # Дзеркальне зображення для ліворуч
+player_walk2_left = pygame.transform.flip(player_walk2, True, False)  # Дзеркальне зображення для ліворуч
 player_jump = pygame.image.load("player_jump.png")
 
 player_idle = pygame.transform.scale(player_idle, (40, 50))
 player_walk1 = pygame.transform.scale(player_walk1, (40, 50))
 player_walk2 = pygame.transform.scale(player_walk2, (40, 50))
-player_walk1_left = pygame.transform.scale(player_walk1_left, (40, 50))  # Масштабируем walk1 для влево
-player_walk2_left = pygame.transform.scale(player_walk2_left, (40, 50))  # Масштабируем walk2 для влево
+player_walk1_left = pygame.transform.scale(player_walk1_left, (40, 50))  # Масштабуємо walk1 для ліворуч
+player_walk2_left = pygame.transform.scale(player_walk2_left, (40, 50))  # Масштабуємо walk2 для ліворуч
 player_jump = pygame.transform.scale(player_jump, (40, 50))
 
-# Загрузка изображения для платформы
+# Завантаження зображення для платформи
 platform_img = pygame.image.load("platform.png")
 platform_img = pygame.transform.scale(platform_img, (120, 20))
 
-# Класс игрока
+# Клас гравця
 class Player:
     def __init__(self):
         self.rect = pygame.Rect(100, 700, 40, 50)
@@ -58,10 +58,10 @@ class Player:
         self.on_ground = False
         self.health = 3
         self.score = 0
-        self.animation_counter = 0  # Счётчик анимации
-        self.facing_left = False  # Флаг, указывающий, куда смотрит игрок (влево или вправо)
-        self.invincible = False  # Неуязвимость
-        self.invincibility_timer = 0  # Таймер неуязвимости
+        self.animation_counter = 0  # Лічильник анімації
+        self.facing_left = False  # Прапор, що вказує, куди дивиться гравець (ліворуч або праворуч)
+        self.invincible = False  # Невразливість
+        self.invincibility_timer = 0  # Таймер невразливості
 
     def move(self, platforms):
         self.vel_y += 1
@@ -91,48 +91,48 @@ class Player:
 
     def jump(self):
         if self.on_ground:
-            self.vel_y = -18  # Прыжок
+            self.vel_y = -18  # Стрибок
 
     def check_collision(self, coins):
-        # Проверка столкновений с монетами
+        # Перевірка зіткнень із монетами
         for coin in coins:
             if self.rect.colliderect(coin.rect):
                 coins.remove(coin)
-                self.score += 10  # Добавление очков за монету
+                self.score += 10  # Додавання очок за монету
 
         if self.rect.bottom > HEIGHT:
             self.health -= 1
             if self.health <= 0:
-                return True  # Игрок погиб
+                return True  # Гравець загинув
         return False
 
     def draw(self, screen):
-        if self.vel_y != 0:  # Если игрок в прыжке
+        if self.vel_y != 0:  # Якщо гравець у стрибку
             screen.blit(player_jump, (self.rect.x, self.rect.y))
-        elif self.vel_x != 0:  # Если игрок движется
-            # Используем два спрайта для анимации ходьбы, в зависимости от направления
+        elif self.vel_x != 0:  # Якщо гравець рухається
+            # Використовуємо два спрайти для анімації ходьби, залежно від напрямку
             self.animation_counter += 1
             if self.animation_counter % 20 == 0:
                 self.animation_counter = 0
             if self.animation_counter < 10:
-                if self.facing_left:  # Если игрок смотрит влево
+                if self.facing_left:  # Якщо гравець дивиться вліво
                     screen.blit(player_walk1_left, (self.rect.x, self.rect.y))
-                else:  # Если игрок смотрит вправо
+                else:  # Якщо гравець дивиться праворуч
                     screen.blit(player_walk1, (self.rect.x, self.rect.y))
             else:
-                if self.facing_left:  # Если игрок смотрит влево
+                if self.facing_left:  # Якщо гравець дивиться вліво
                     screen.blit(player_walk2_left, (self.rect.x, self.rect.y))
-                else:  # Если игрок смотрит вправо
+                else:  # Якщо гравець дивиться праворуч
                     screen.blit(player_walk2, (self.rect.x, self.rect.y))
-        else:  # Если игрок стоит
+        else:  # Якщо гравець стоїть
             screen.blit(player_idle, (self.rect.x, self.rect.y))
 
     def draw_health(self, screen):
-        health_text = font.render(f"Здоровье: {self.health}", True, BLACK)
+        health_text = font.render(f"Здоров'я: {self.health}", True, BLACK)
         screen.blit(health_text, (10, 10))
 
     def draw_score(self, screen):
-        score_text = font.render(f"Очки: {self.score}", True, BLACK)
+        score_text = font.render(f"Бали: {self.score}", True, BLACK)
         screen.blit(score_text, (WIDTH - 150, 10))
 
     def update_invincibility(self):
@@ -141,23 +141,22 @@ class Player:
             if self.invincibility_timer <= 0:
                 self.invincible = False
 
-# Класс для платформ
+# Клас для платформ
 class Platform:
     def __init__(self, x, y, width, height, moving=False):
         self.rect = pygame.Rect(x, y, width, height)
         self.moving = moving
-        self.vel_x = random.choice([-2, -1, 1, 2]) if moving else 0  # Изменено: убран случайный 0
+        self.vel_x = random.choice([-2, -1, 1, 2]) if moving else 0  # Рухаюча платформа
 
     def move(self):
         if self.moving:
             self.rect.x += self.vel_x
             if self.rect.left < 0 or self.rect.right > WIDTH:
-                self.vel_x = -self.vel_x  # Меняем направление движения
+                self.vel_x = -self.vel_x  # Змінюємо напрямок руху
 
     def draw(self, screen):
-        screen.blit(platform_img, (self.rect.x, self.rect.y))  # Отображаем платформу с изображением
-
-# Класс для монет
+        screen.blit(platform_img, (self.rect.x, self.rect.y))  # Відображаємо платформу із зображенням
+# Клас для монет
 class Coin:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 30, 30)
@@ -165,7 +164,7 @@ class Coin:
     def draw(self, screen):
         screen.blit(coin_icon, (self.rect.x, self.rect.y))
 
-# Функция создания уровней
+# Функція створення рівнів
 def create_platforms(level):
     platforms = [
         Platform(100, 750, 120, 20),
@@ -223,13 +222,13 @@ def create_door(platforms):
 
 def game_over_screen():
     screen.fill(WHITE)
-    game_over_text = font.render("Вы умерли", True, RED)
-    restart_text = font.render("Нажмите R для перезапуска или ESC для выхода", True, BLACK)
+    game_over_text = font.render("Ви померли", True, RED)
+    restart_text = font.render("Натисніть R для перезапуску або ESC для виходу", True, BLACK)
     screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - 50))
     screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 10))
     pygame.display.flip()
 
-# Инициализация игры
+# Ініціалізація гри
 current_level = 1
 required_score = 100
 platforms = create_platforms(current_level)
@@ -257,7 +256,7 @@ while running:
                 coins = create_coins(required_score, platforms)
                 door_rect = create_door(platforms)
 
-    player.update_invincibility()  # Обновляем состояние неуязвимости игрока
+    player.update_invincibility()  # Оновлюємо стан невразливості гравця
 
     if player.check_collision(coins):
         if player.health <= 0:

@@ -91,7 +91,7 @@ class Player:
 
     def jump(self):
         if self.on_ground:
-            self.vel_y = -18  # Стрибок
+            self.vel_y = -23  # Стрибок
 
     def check_collision(self, coins):
         # Перевірка зіткнень із монетами

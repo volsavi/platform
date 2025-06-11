@@ -53,6 +53,20 @@ spike_img = pygame.transform.scale(spike_img, (40, 40))
 
 
 class Platform:
+    """
+    Базовий клас статичної платформи у грі.
+
+    Атрибути:
+        x, y (int): Координати платформи.
+        width, height (int): Розміри платформи.
+        color (tuple): Колір платформи.
+        rect (pygame.Rect): Прямокутник платформи для колізій.
+
+    Методи:
+        update(): Оновлення стану (не виконує нічого у статичній платформі).
+        draw(screen): Малює платформу на екрані.
+    """
+
     def __init__(self, x, y, w=120, h=20, moving=False, move_range=0, move_speed=0,
                  vertical=False, temporary=False, pulsate=False, disappear_cycle=None, diagonal=False):
         self.rect = pygame.Rect(x, y, w, h)
@@ -123,7 +137,22 @@ class Spike:
         screen.blit(spike_img, (self.rect.x, self.rect.y))
 
 
+
 class Coin:
+    """
+    Клас монети, яку гравець може збирати.
+
+    Атрибути:
+        x, y (int): Координати монети.
+        image (pygame.Surface): Зображення монети.
+        rect (pygame.Rect): Прямокутник для колізії.
+        angle (float): Поточний кут обертання (для анімації).
+        collected (bool): Позначає, чи зібрана монета.
+
+    Методи:
+        update(): Анімація обертання монети.
+        draw(screen): Малює монету, якщо вона не зібрана.
+    """
     def __init__(self, x, y, floating=False):
         self.base_x = x
         self.base_y = y
@@ -133,7 +162,7 @@ class Coin:
 
     def update(self):
         if self.floating:
-            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)
+            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)  
             self.rect.y = self.base_y + self.float_offset
 
     def draw(self, screen):
@@ -141,6 +170,32 @@ class Coin:
 
 
 class Player:
+    """
+    Клас гравця у 2D платформері.
+
+    Атрибути:
+        rect (pygame.Rect): Прямокутник, що описує положення та розмір гравця.
+        vel_y (int): Вертикальна швидкість гравця.
+        vel_x (int): Горизонтальна швидкість гравця.
+        on_ground (bool): Чи знаходиться гравець на землі.
+        score (int): Кількість зібраних монет.
+        health (int): Кількість життів гравця.
+        last_hit_time (int): Час останнього урону від шипів (для невразливості).
+        facing_left (bool): Напрямок обличчям гравця (вліво або вправо).
+        jump_sound (pygame.mixer.Sound): Звук стрибка.
+        coin_sound (pygame.mixer.Sound): Звук підняття монети.
+        hit_sound (pygame.mixer.Sound): Звук урону.
+
+    Методи:
+        jump(): Викликає стрибок, якщо гравець на землі.
+        move(platforms): Рух гравця з урахуванням платформи та фізики.
+        check_collision(coins, spikes): Перевірка зіткнень з монетами та шипами.
+        update_invincibility(): Оновлення стану невразливості.
+        draw(screen): Малює гравця на екрані.
+        draw_health(screen): Малює шкалу здоров’я.
+        draw_score(screen): Малює лічильник очок.
+    """
+
     def __init__(self):
         self.rect = pygame.Rect(100, 700, 40, 50)
         self.vel_x = 0

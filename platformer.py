@@ -141,22 +141,8 @@ class Spike:
         screen.blit(spike_img, (self.rect.x, self.rect.y))
 
 
+
 class Coin:
-    """
-    Клас монети, яку гравець може збирати.
-
-    Атрибути:
-        x, y (int): Координати монети.
-        image (pygame.Surface): Зображення монети.
-        rect (pygame.Rect): Прямокутник для колізії.
-        angle (float): Поточний кут обертання (для анімації).
-        collected (bool): Позначає, чи зібрана монета.
-
-    Методи:
-        update(): Анімація обертання монети.
-        draw(screen): Малює монету, якщо вона не зібрана.
-    """
-
     def __init__(self, x, y, floating=False):
         self.base_x = x
         self.base_y = y
@@ -166,7 +152,7 @@ class Coin:
 
     def update(self):
         if self.floating:
-            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)
+            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)  
             self.rect.y = self.base_y + self.float_offset
 
     def draw(self, screen):

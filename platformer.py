@@ -1,6 +1,39 @@
 import pygame
 import math
 import random
+import logging 
+import os 
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG) # Встановлюємо мінімальний рівень логування для логера
+
+# Створюємо обробник для виводу в консоль
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO) # Рівень для консолі - INFO
+
+# Створюємо обробник для запису в файл
+file_handler = logging.FileHandler('game_log.log')
+file_handler.setLevel(logging.DEBUG) # Рівень для файлу - DEBUG
+
+# Створюємо форматер
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Додаємо форматер до обробників
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+# Додаємо обробники до логера
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
+# Тестові повідомлення логування для перевірки налаштувань
+logger.debug("Логування налаштовано: DEBUG")
+logger.info("Логування налаштовано: INFO")
+logger.warning("Логування налаштовано: WARNING")
+logger.error("Логування налаштовано: ERROR")
+logger.critical("Логування налаштовано: CRITICAL")
+
+
 
 def main():
     """
@@ -23,11 +56,7 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    # Зауваження: font та message_timer/message_text вже визначені глобально,
-    # але локальні змінні в main матимуть пріоритет.
-    # Якщо потрібно використовувати глобальні, слід вказати 'global font', 'global message_timer'
-    # або передавати їх як аргументи. В даному випадку, для повідомлень,
-    # вони перевизначаються локально.
+    
     local_font = pygame.font.SysFont("Arial", 36)
     local_message_timer = 0
     local_message_text = ""

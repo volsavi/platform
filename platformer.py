@@ -1,19 +1,19 @@
 import pygame
 import math
 import random
-import logging 
-import os 
+import logging
+import os
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG) # Встановлюємо мінімальний рівень логування для логера
+logger.setLevel(logging.DEBUG)  # Встановлюємо мінімальний рівень логування для логера
 
 # Створюємо обробник для виводу в консоль
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO) # Рівень для консолі - INFO
+console_handler.setLevel(logging.INFO)  # Рівень для консолі - INFO
 
 # Створюємо обробник для запису в файл
 file_handler = logging.FileHandler('game_log.log')
-file_handler.setLevel(logging.DEBUG) # Рівень для файлу - DEBUG
+file_handler.setLevel(logging.DEBUG)  # Рівень для файлу - DEBUG
 
 # Створюємо форматер
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -34,7 +34,6 @@ logger.error("Логування налаштовано: ERROR")
 logger.critical("Логування налаштовано: CRITICAL")
 
 
-
 def main():
     """
     Основна функція гри, яка керує ігровим циклом.
@@ -43,10 +42,19 @@ def main():
     та відображає їх на екрані. Керує переходами між рівнями,
     меню та завершенням гри.
     """
+    logger.info("Гра запущена. Відображення головного меню.")
     show_menu()
 
     current_level = 0
-    level_data = levels[current_level]
+
+    try:
+        level_data = levels[current_level]
+        logger.info(f"Завантажено рівень {current_level + 1}.")
+    except IndexError:
+        logger.critical(f"Спроба завантажити неіснуючий рівень: {current_level}. Завершення програми.")
+        pygame.quit()
+        exit()
+
     platforms = level_data["platforms"]
     coins = level_data["coins"]
     door = level_data["door"]
@@ -56,99 +64,155 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    
     local_font = pygame.font.SysFont("Arial", 36)
     local_message_timer = 0
     local_message_text = ""
 
+    # --- Початок блоку профілювання CPU ---
+    import cProfile
+    import pstats
+    # Назва файлу для збереження результатів профілювання
+    profile_output_file = "game_profile.prof"
+
+    # Створюємо об'єкт профайлера
+    profiler = cProfile.Profile()
+    profiler.enable()  # Запускаємо профайлер
+    # --- Кінець блоку профілювання CPU ---
+
     while running:
-        clock.tick(60)
-        screen.fill(WHITE)
-        screen.blit(background, (0, 0))
+        try:
+            clock.tick(60)  # Обмеження до 60 FPS
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            # --- Вимірювання часу кадру (для FPS) ---
+            start_frame_time = pygame.time.get_ticks()
+            # --- Кінець вимірювання часу кадру ---
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.vel_x = -10
-                    player.facing_left = True
-                elif event.key == pygame.K_RIGHT:
-                    player.vel_x = 10
-                    player.facing_left = False
-                elif event.key == pygame.K_UP:
-                    player.jump()
+            screen.fill(WHITE)
+            screen.blit(background, (0, 0))
 
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.vel_x < 0:
-                    player.vel_x = 0
-                elif event.key == pygame.K_RIGHT and player.vel_x > 0:
-                    player.vel_x = 0
-
-        for platform in platforms:
-            platform.update()
-            platform.draw(screen)
-
-        for spike in spikes:
-            spike.draw(screen)
-
-        for coin in coins:
-            coin.update()
-            coin.draw(screen)
-
-        player.move(platforms)
-        game_over = player.check_collision(coins, spikes)
-        player.update_invincibility()
-        player.draw(screen)
-        player.draw_health(screen)
-        player.draw_score(screen)
-
-        screen.blit(door_icon, (door.x, door.y))
-
-        if player.rect.colliderect(door):
-            if len(coins) == 0:
-                level_up_sound.play()
-                if not show_level_up_menu(current_level + 1):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    logger.info("Користувач закрив вікно гри. Завершення основного циклу.")
                     running = False
-                else:
-                    current_level += 1
-                    if current_level >= len(levels):
-                        show_victory_screen()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.vel_x = -10
+                        player.facing_left = True
+                        logger.debug("Натиснута клавіша LEFT. Швидкість X = -10.")
+                    elif event.key == pygame.K_RIGHT:
+                        player.vel_x = 10
+                        player.facing_left = False
+                        logger.debug("Натиснута клавіша RIGHT. Швидкість X = 10.")
+                    elif event.key == pygame.K_UP:
+                        player.jump()
+                        logger.debug("Натиснута клавіша UP. Спроба стрибка.")
+
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT and player.vel_x < 0:
+                        player.vel_x = 0
+                        logger.debug("Відпущена клавіша LEFT. Швидкість X = 0.")
+                    elif event.key == pygame.K_RIGHT and player.vel_x > 0:
+                        player.vel_x = 0
+                        logger.debug("Відпущена клавіша RIGHT. Швидкість X = 0.")
+
+            for platform in platforms:
+                platform.update()
+                platform.draw(screen)
+
+            for spike in spikes:
+                spike.draw(screen)
+
+            for coin in coins:
+                coin.update()
+                coin.draw(screen)
+
+            player.move(platforms)
+            game_over = player.check_collision(coins, spikes)
+            player.update_invincibility()
+            player.draw(screen)
+            player.draw_health(screen)
+            player.draw_score(screen)
+
+            screen.blit(door_icon, (door.x, door.y))
+
+            if player.rect.colliderect(door):
+                logger.debug("Гравець торкнувся дверей.")
+                if len(coins) == 0:
+                    logger.info("Усі монети зібрано. Перехід на наступний рівень.")
+                    level_up_sound.play()
+                    if not show_level_up_menu(current_level + 1):
                         running = False
                     else:
-                        level_data = levels[current_level]
-                        platforms = level_data["platforms"]
-                        coins = level_data["coins"]
-                        door = level_data["door"]
-                        spikes = level_data.get("spikes", [])
-                        player = Player()
-            else:
-                local_message_text = "Збери всі монети, щоб перейти далі!"
-                local_message_timer = 120
+                        current_level += 1
+                        if current_level >= len(levels):
+                            logger.info("Усі рівні пройдено. Відображення екрану перемоги.")
+                            show_victory_screen()
+                            running = False
+                        else:
+                            try:
+                                level_data = levels[current_level]
+                                platforms = level_data["platforms"]
+                                coins = level_data["coins"]
+                                door = level_data["door"]
+                                spikes = level_data.get("spikes", [])
+                                player = Player()  # Скидаємо гравця для нового рівня
+                                logger.info(f"Завантажено новий рівень: {current_level + 1}.")
+                            except IndexError:
+                                logger.critical(f"Помилка завантаження даних для рівня {current_level}. Можливо, рівень не існує.")
+                                running = False
+                else:
+                    local_message_text = "Збери всі монети, щоб перейти далі!"
+                    local_message_timer = 120
+                    logger.info(f"Гравець намагався перейти на наступний рівень, але не всі монети зібрано. Залишилось: {len(coins)}")
 
-        # Показ повідомлення
-        if local_message_timer > 0 and local_message_text:
-            text_surface = local_font.render(local_message_text, True, (255, 0, 0))
-            screen.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, 50))
-            local_message_timer -= 1
+            if local_message_timer > 0 and local_message_text:
+                text_surface = local_font.render(local_message_text, True, (255, 0, 0))
+                screen.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, 50))
+                local_message_timer -= 1
+                logger.debug(f"Відображається тимчасове повідомлення: '{local_message_text}'. Залишилось: {local_message_timer} кадрів.")
 
-        if game_over:
-            if show_game_over_menu():
-                current_level = 0
-                level_data = levels[current_level]
-                platforms = level_data["platforms"]
-                coins = level_data["coins"]
-                door = level_data["door"]
-                spikes = level_data.get("spikes", [])
-                player = Player()
-            else:
-                running = False
+            if game_over:
+                logger.info("Гравець програв.")
+                if show_game_over_menu():
+                    logger.info("Гравець обрав 'Спробувати знову'. Перезапуск першого рівня.")
+                    current_level = 0
+                    level_data = levels[current_level]
+                    platforms = level_data["platforms"]
+                    coins = level_data["coins"]
+                    door = level_data["door"]
+                    spikes = level_data.get("spikes", [])
+                    player = Player()
+                else:
+                    logger.info("Гравець обрав 'Вихід' з меню програшу. Завершення основного циклу.")
+                    running = False
 
-        pygame.display.flip()
+            pygame.display.flip()
 
+            # --- Вимірювання FPS ---
+            end_frame_time = pygame.time.get_ticks()
+            frame_duration = end_frame_time - start_frame_time
+            if frame_duration > 0:
+                fps = 1000 / frame_duration
+                logger.debug(f"FPS: {fps:.2f}, Frame Time: {frame_duration} ms")
+            # --- Кінець вимірювання FPS ---
+
+        except Exception as e:
+            logger.critical(f"Критична непередбачена помилка в головному циклі гри: {e}", exc_info=True)
+            running = False
+
+    # --- Кінець блоку профілювання CPU ---
+    profiler.disable()  # Зупиняємо профайлер
+    # Зберігаємо результати у файл
+    with open(profile_output_file, 'w') as f:
+        stats = pstats.Stats(profiler, stream=f)
+        stats.sort_stats('cumtime')  # Сортуємо за сукупним часом виконання
+        stats.print_stats()  # Виводимо статистику в файл
+    logger.info(f"Результати профілювання збережено у {profile_output_file}")
+    # --- Кінець блоку профілювання CPU ---
+
+    logger.info("Гра завершена. Вихід з Pygame.")
     pygame.quit()
-
 
 # --- Ініціалізація Pygame та глобальні змінні/ресурси ---
 pygame.init()

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html lang="uk" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>API Документація &#8212; platformer 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5a0ebc6c"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Індекс" href="genindex.html" />
+    <link rel="search" title="Пошук" href="search.html" />
+    <link rel="next" title="Використання Гри" href="usage.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-platformer">
+<span id="api"></span><h1>API Документація<a class="headerlink" href="#module-platformer" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="platformer.Button">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">Button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Button" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Клас, що представляє інтерактивну кнопку.</p>
+<p>Використовується для елементів меню.</p>
+<dl class="simple">
+<dt>Атрибути:</dt><dd><p>rect (pygame.Rect): Прямокутник, що визначає положення та розмір кнопки.
+text (str): Текст, що відображається на кнопці.</p>
+</dd>
+<dt>Методи:</dt><dd><p>draw(screen): Малює кнопку на екрані.
+is_clicked(pos): Перевіряє, чи було натиснуто кнопку за заданими координатами.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Button.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Button.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Малює кнопку на екрані.</p>
+<p>Кнопка має сірий фон, чорну рамку та центрований текст.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій буде малюватися кнопка.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Button.is_clicked">
+<span class="sig-name descname"><span class="pre">is_clicked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Button.is_clicked" title="Link to this definition">¶</a></dt>
+<dd><p>Перевіряє, чи було натиснуто кнопку за заданими координатами.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>pos (tuple): Кортеж (x, y) координат кліку миші.</p>
+</dd>
+<dt>Повертає:</dt><dd><p>bool: True, якщо координати знаходяться в межах кнопки, інакше False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="platformer.Coin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">Coin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floating</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Coin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Клас монети, яку гравець може збирати.</p>
+<dl class="simple">
+<dt>Атрибути:</dt><dd><p>base_x (int): Початкова X-координата монети.
+base_y (int): Початкова Y-координата монети.
+floating (bool): True, якщо монета має анімацію «плавання» вгору-вниз.
+rect (pygame.Rect): Прямокутник для колізії.
+float_offset (float): Поточне зміщення по Y для анімації «плавання».</p>
+</dd>
+<dt>Методи:</dt><dd><p>update(): Оновлює стан монети, включаючи анімацію обертання та плавання.
+draw(screen): Малює монету.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Coin.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Coin.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Малює монету на екрані.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій буде малюватися монета.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Coin.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Coin.update" title="Link to this definition">¶</a></dt>
+<dd><p>Оновлює стан монети.</p>
+<p>Якщо монета є «плаваючою», її Y-координата буде змінюватися по синусоїді.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="platformer.Platform">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">Platform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pulsate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disappear_cycle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagonal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Platform" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Базовий клас для платформи у грі.</p>
+<p>Цей клас представляє різні типи платформ: статичні, рухомі (горизонтально,
+вертикально, діагонально), тимчасові, пульсуючі та платформи, що зникають.</p>
+<dl class="simple">
+<dt>Атрибути:</dt><dd><p>rect (pygame.Rect): Прямокутник, що визначає положення та розмір платформи.
+moving (bool): True, якщо платформа рухається.
+move_range (int): Дистанція, на яку рухається рухома платформа.
+move_speed (int): Швидкість руху платформи.
+vertical (bool): True, якщо рух вертикальний (інакше горизонтальний).
+temporary (bool): True, якщо платформа тимчасова (зникає після дотику).
+pulsate (bool): True, якщо платформа пульсує (змінює розмір).
+disappear_cycle (tuple): Кортеж (час видимості, час невидимості) для зникаючих платформ.
+active (bool): Поточний стан активності платформи (видима/доступна).
+start_pos (tuple): Початкові координати платформи.
+direction (int): Напрямок руху (-1 або 1).
+step_counter (int): Лічильник пройденої відстані для рухомих платформ.
+timer (int): Таймер для зникаючих платформ.
+diagonal (bool): True, якщо рух діагональний.</p>
+</dd>
+<dt>Методи:</dt><dd><p>update(): Оновлює стан платформи, включаючи рух, пульсацію та цикли зникнення.
+draw(screen): Малює платформу на екрані, якщо вона активна.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Platform.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Platform.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Малює платформу на екрані.</p>
+<p>Платформа відображається лише якщо вона активна.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій буде малюватися платформа.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Platform.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Platform.update" title="Link to this definition">¶</a></dt>
+<dd><p>Оновлює стан платформи.</p>
+<p>Включає логіку для:
+- Пульсуючих платформ (зміна розміру).
+- Рухомих платформ (горизонтально, вертикально, діагонально).
+- Зникаючих платформ (активність на основі циклу видимості/невидимості).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="platformer.Player">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">Player</span></span><a class="headerlink" href="#platformer.Player" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Клас гравця у 2D платформері.</p>
+<p>Відповідає за рух гравця, колізії, здоров’я та очки.</p>
+<dl class="simple">
+<dt>Атрибути:</dt><dd><p>rect (pygame.Rect): Прямокутник, що описує положення та розмір гравця.
+vel_x (int): Горизонтальна швидкість гравця.
+vel_y (int): Вертикальна швидкість гравця (включаючи гравітацію).
+on_ground (bool): Чи знаходиться гравець на землі.
+health (int): Кількість життів гравця.
+score (int): Кількість зібраних монет.
+animation_counter (int): Лічильник для анімації руху гравця.
+facing_left (bool): Напрямок, в який дивиться гравець (True для ліворуч).
+invincible (bool): Чи є гравець тимчасово невразливим після отримання урону.
+invincibility_timer (int): Таймер невразливості.
+is_running_sound_playing (bool): Флаг, що вказує, чи відтворюється звук бігу.</p>
+</dd>
+<dt>Методи:</dt><dd><p>move(platforms): Обробляє рух гравця та колізії з платформами.
+jump(): Запускає стрибок гравця, якщо він на землі.
+check_collision(coins, spikes): Перевіряє зіткнення з монетами та шипами, оновлює здоров’я та очки.
+draw(screen): Малює гравця на екрані, вибираючи відповідну анімацію.
+draw_health(screen): Малює шкалу здоров’я гравця.
+draw_score(screen): Малює лічильник очок гравця.
+update_invincibility(): Оновлює стан невразливості гравця.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.check_collision">
+<span class="sig-name descname"><span class="pre">check_collision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.check_collision" title="Link to this definition">¶</a></dt>
+<dd><p>Перевіряє зіткнення гравця з монетами та шипами.</p>
+<p>Збирає монети, завдає шкоди від шипів (з урахуванням невразливості)
+та обробляє падіння гравця за межі екрану.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>coins (list): Список об’єктів Coin.
+spikes (list): Список об’єктів Spike.</p>
+</dd>
+<dt>Повертає:</dt><dd><p>bool: True, якщо гра закінчується (здоров’я гравця &lt;= 0), інакше False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Малює гравця на екрані.</p>
+<p>Вибирає відповідне зображення (стрибок, ходьба, бездіяльність)
+та обробляє анімацію руху та відтворення звуку бігу.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій буде малюватися гравець.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.draw_health">
+<span class="sig-name descname"><span class="pre">draw_health</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.draw_health" title="Link to this definition">¶</a></dt>
+<dd><p>Малює шкалу здоров’я гравця на екрані.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій буде малюватися здоров’я.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.draw_score">
+<span class="sig-name descname"><span class="pre">draw_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.draw_score" title="Link to this definition">¶</a></dt>
+<dd><p>Малює лічильник очок гравця на екрані.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій будуть малюватися очки.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.jump">
+<span class="sig-name descname"><span class="pre">jump</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.jump" title="Link to this definition">¶</a></dt>
+<dd><p>Змушує гравця стрибнути, якщо він знаходиться на землі.</p>
+<p>Відтворює звук стрибка.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.move">
+<span class="sig-name descname"><span class="pre">move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platforms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.move" title="Link to this definition">¶</a></dt>
+<dd><p>Обробляє рух гравця та колізії з платформами.</p>
+<p>Застосовує гравітацію, обробляє горизонтальний і вертикальний рух,
+а також взаємодію з різними типами платформ.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>platforms (list): Список об’єктів Platform у поточному рівні.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Player.update_invincibility">
+<span class="sig-name descname"><span class="pre">update_invincibility</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Player.update_invincibility" title="Link to this definition">¶</a></dt>
+<dd><p>Оновлює таймер невразливості гравця.</p>
+<p>Після закінчення таймера гравець знову стає вразливим.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="platformer.Spike">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">Spike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Spike" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Клас, що представляє шипи у грі.</p>
+<p>Шипи є перешкодою, яка завдає шкоди гравцеві при зіткненні.</p>
+<dl class="simple">
+<dt>Атрибути:</dt><dd><p>rect (pygame.Rect): Прямокутник, що визначає положення та розмір шипів.</p>
+</dd>
+<dt>Методи:</dt><dd><p>draw(screen): Малює шипи на екрані.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="platformer.Spike.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.Spike.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Малює шипи на екрані.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>screen (pygame.Surface): Поверхня, на якій будуть малюватися шипи.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="platformer.main">
+<span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.main" title="Link to this definition">¶</a></dt>
+<dd><p>Основна функція гри, яка керує ігровим циклом.</p>
+<p>Ініціалізує гру, обробляє події, оновлює стан об’єктів
+та відображає їх на екрані. Керує переходами між рівнями,
+меню та завершенням гри.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="platformer.show_game_over_menu">
+<span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">show_game_over_menu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.show_game_over_menu" title="Link to this definition">¶</a></dt>
+<dd><p>Відображає меню «Гру закінчено».</p>
+<p>Пропонує гравцеві спробувати знову або вийти з гри.</p>
+<dl class="simple">
+<dt>Повертає:</dt><dd><p>bool: True, якщо гравець обрав «Спробувати знову», інакше False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="platformer.show_level_up_menu">
+<span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">show_level_up_menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#platformer.show_level_up_menu" title="Link to this definition">¶</a></dt>
+<dd><p>Відображає меню після проходження рівня.</p>
+<p>Дозволяє гравцеві перейти до наступного рівня або вийти з гри.</p>
+<dl class="simple">
+<dt>Аргументи:</dt><dd><p>level_number (int): Номер пройденого рівня.</p>
+</dd>
+<dt>Повертає:</dt><dd><p>bool: True, якщо гравець обрав «Далі», інакше False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="platformer.show_menu">
+<span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">show_menu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.show_menu" title="Link to this definition">¶</a></dt>
+<dd><p>Відображає головне меню гри.</p>
+<p>Дозволяє гравцеві почати гру або вийти з неї.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="platformer.show_victory_screen">
+<span class="sig-prename descclassname"><span class="pre">platformer.</span></span><span class="sig-name descname"><span class="pre">show_victory_screen</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#platformer.show_victory_screen" title="Link to this definition">¶</a></dt>
+<dd><p>Відображає екран перемоги після проходження всіх рівнів.</p>
+<p>Дозволяє гравцеві вийти з гри.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">platformer</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Вперед" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Навігація</h3>
+<p class="caption" role="heading"><span class="caption-text">Зміст:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Документація</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.Button"><code class="docutils literal notranslate"><span class="pre">Button</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.Coin"><code class="docutils literal notranslate"><span class="pre">Coin</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.Platform"><code class="docutils literal notranslate"><span class="pre">Platform</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.Player"><code class="docutils literal notranslate"><span class="pre">Player</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.Spike"><code class="docutils literal notranslate"><span class="pre">Spike</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.show_game_over_menu"><code class="docutils literal notranslate"><span class="pre">show_game_over_menu()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.show_level_up_menu"><code class="docutils literal notranslate"><span class="pre">show_level_up_menu()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.show_menu"><code class="docutils literal notranslate"><span class="pre">show_menu()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platformer.show_victory_screen"><code class="docutils literal notranslate"><span class="pre">show_victory_screen()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Використання Гри</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Як зробити внесок</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="Попередній розділ">&lt;no title&gt;</a></li>
+      <li>Next: <a href="usage.html" title="наступний розділ">Використання Гри</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, volsavi(Voloshyn O.V.).
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

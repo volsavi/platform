@@ -2,18 +2,140 @@ import pygame
 import math
 import random
 
+def main():
+    """
+    Основна функція гри, яка керує ігровим циклом.
+
+    Ініціалізує гру, обробляє події, оновлює стан об'єктів
+    та відображає їх на екрані. Керує переходами між рівнями,
+    меню та завершенням гри.
+    """
+    show_menu()
+
+    current_level = 0
+    level_data = levels[current_level]
+    platforms = level_data["platforms"]
+    coins = level_data["coins"]
+    door = level_data["door"]
+    spikes = level_data.get("spikes", [])
+
+    player = Player()
+    clock = pygame.time.Clock()
+    running = True
+
+    # Зауваження: font та message_timer/message_text вже визначені глобально,
+    # але локальні змінні в main матимуть пріоритет.
+    # Якщо потрібно використовувати глобальні, слід вказати 'global font', 'global message_timer'
+    # або передавати їх як аргументи. В даному випадку, для повідомлень,
+    # вони перевизначаються локально.
+    local_font = pygame.font.SysFont("Arial", 36)
+    local_message_timer = 0
+    local_message_text = ""
+
+    while running:
+        clock.tick(60)
+        screen.fill(WHITE)
+        screen.blit(background, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.vel_x = -10
+                    player.facing_left = True
+                elif event.key == pygame.K_RIGHT:
+                    player.vel_x = 10
+                    player.facing_left = False
+                elif event.key == pygame.K_UP:
+                    player.jump()
+
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT and player.vel_x < 0:
+                    player.vel_x = 0
+                elif event.key == pygame.K_RIGHT and player.vel_x > 0:
+                    player.vel_x = 0
+
+        for platform in platforms:
+            platform.update()
+            platform.draw(screen)
+
+        for spike in spikes:
+            spike.draw(screen)
+
+        for coin in coins:
+            coin.update()
+            coin.draw(screen)
+
+        player.move(platforms)
+        game_over = player.check_collision(coins, spikes)
+        player.update_invincibility()
+        player.draw(screen)
+        player.draw_health(screen)
+        player.draw_score(screen)
+
+        screen.blit(door_icon, (door.x, door.y))
+
+        if player.rect.colliderect(door):
+            if len(coins) == 0:
+                level_up_sound.play()
+                if not show_level_up_menu(current_level + 1):
+                    running = False
+                else:
+                    current_level += 1
+                    if current_level >= len(levels):
+                        show_victory_screen()
+                        running = False
+                    else:
+                        level_data = levels[current_level]
+                        platforms = level_data["platforms"]
+                        coins = level_data["coins"]
+                        door = level_data["door"]
+                        spikes = level_data.get("spikes", [])
+                        player = Player()
+            else:
+                local_message_text = "Збери всі монети, щоб перейти далі!"
+                local_message_timer = 120
+
+        # Показ повідомлення
+        if local_message_timer > 0 and local_message_text:
+            text_surface = local_font.render(local_message_text, True, (255, 0, 0))
+            screen.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, 50))
+            local_message_timer -= 1
+
+        if game_over:
+            if show_game_over_menu():
+                current_level = 0
+                level_data = levels[current_level]
+                platforms = level_data["platforms"]
+                coins = level_data["coins"]
+                door = level_data["door"]
+                spikes = level_data.get("spikes", [])
+                player = Player()
+            else:
+                running = False
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+
+# --- Ініціалізація Pygame та глобальні змінні/ресурси ---
 pygame.init()
 
+# Шрифти
 font = pygame.font.SysFont("Arial", 36)
-message_timer = 0   # тривалість показу повідомлення
-message_text = ""
+large_font = pygame.font.Font(None, 72)
 
+# Звуки
 coin_sound = pygame.mixer.Sound("coin.wav")
 jump_sound = pygame.mixer.Sound("jump.wav")
 run_sound = pygame.mixer.Sound("run.wav")
 level_up_sound = pygame.mixer.Sound("level_up.wav")
 damage_sound = pygame.mixer.Sound("damage.wav")
 
+# Розміри екрану та кольори
 WIDTH, HEIGHT = 1200, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Креативний Платформер")
@@ -23,9 +145,7 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 RED = (255, 0, 0)
 
-font = pygame.font.Font(None, 36)
-large_font = pygame.font.Font(None, 72)
-
+# Зображення
 background = pygame.image.load("background.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
@@ -56,19 +176,33 @@ spike_img = pygame.image.load("spike.png")
 spike_img = pygame.transform.scale(spike_img, (40, 40))
 
 
+# --- Визначення класів ---
 class Platform:
     """
-    Базовий клас статичної платформи у грі.
+    Базовий клас для платформи у грі.
+
+    Цей клас представляє різні типи платформ: статичні, рухомі (горизонтально,
+    вертикально, діагонально), тимчасові, пульсуючі та платформи, що зникають.
 
     Атрибути:
-        x, y (int): Координати платформи.
-        width, height (int): Розміри платформи.
-        color (tuple): Колір платформи.
-        rect (pygame.Rect): Прямокутник платформи для колізій.
+        rect (pygame.Rect): Прямокутник, що визначає положення та розмір платформи.
+        moving (bool): True, якщо платформа рухається.
+        move_range (int): Дистанція, на яку рухається рухома платформа.
+        move_speed (int): Швидкість руху платформи.
+        vertical (bool): True, якщо рух вертикальний (інакше горизонтальний).
+        temporary (bool): True, якщо платформа тимчасова (зникає після дотику).
+        pulsate (bool): True, якщо платформа пульсує (змінює розмір).
+        disappear_cycle (tuple): Кортеж (час видимості, час невидимості) для зникаючих платформ.
+        active (bool): Поточний стан активності платформи (видима/доступна).
+        start_pos (tuple): Початкові координати платформи.
+        direction (int): Напрямок руху (-1 або 1).
+        step_counter (int): Лічильник пройденої відстані для рухомих платформ.
+        timer (int): Таймер для зникаючих платформ.
+        diagonal (bool): True, якщо рух діагональний.
 
     Методи:
-        update(): Оновлення стану (не виконує нічого у статичній платформі).
-        draw(screen): Малює платформу на екрані.
+        update(): Оновлює стан платформи, включаючи рух, пульсацію та цикли зникнення.
+        draw(screen): Малює платформу на екрані, якщо вона активна.
     """
 
     def __init__(self, x, y, w=120, h=20, moving=False, move_range=0, move_speed=0,
@@ -89,6 +223,14 @@ class Platform:
         self.diagonal = diagonal
 
     def update(self):
+        """
+        Оновлює стан платформи.
+
+        Включає логіку для:
+        - Пульсуючих платформ (зміна розміру).
+        - Рухомих платформ (горизонтально, вертикально, діагонально).
+        - Зникаючих платформ (активність на основі циклу видимості/невидимості).
+        """
         if self.pulsate:
             # Зміна розміру платформи по синусоїді
             scale_factor = 1 + 0.3 * math.sin(pygame.time.get_ticks() / 300)
@@ -129,15 +271,48 @@ class Platform:
                 self.active = True
 
     def draw(self, screen):
+        """
+        Малює платформу на екрані.
+
+        Платформа відображається лише якщо вона активна.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій буде малюватися платформа.
+        """
         if self.active:
             screen.blit(platform_img, (self.rect.x, self.rect.y))
 
 
 class Spike:
+    """
+    Клас, що представляє шипи у грі.
+
+    Шипи є перешкодою, яка завдає шкоди гравцеві при зіткненні.
+
+    Атрибути:
+        rect (pygame.Rect): Прямокутник, що визначає положення та розмір шипів.
+
+    Методи:
+        draw(screen): Малює шипи на екрані.
+    """
+
     def __init__(self, x, y):
+        """
+        Ініціалізує об'єкт шипів.
+
+        Аргументи:
+            x (int): X-координата верхнього лівого кута шипів.
+            y (int): Y-координата верхнього лівого кута шипів.
+        """
         self.rect = pygame.Rect(x, y, 40, 40)
 
     def draw(self, screen):
+        """
+        Малює шипи на екрані.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій будуть малюватися шипи.
+        """
         screen.blit(spike_img, (self.rect.x, self.rect.y))
 
 
@@ -146,18 +321,26 @@ class Coin:
     Клас монети, яку гравець може збирати.
 
     Атрибути:
-        x, y (int): Координати монети.
-        image (pygame.Surface): Зображення монети.
+        base_x (int): Початкова X-координата монети.
+        base_y (int): Початкова Y-координата монети.
+        floating (bool): True, якщо монета має анімацію "плавання" вгору-вниз.
         rect (pygame.Rect): Прямокутник для колізії.
-        angle (float): Поточний кут обертання (для анімації).
-        collected (bool): Позначає, чи зібрана монета.
+        float_offset (float): Поточне зміщення по Y для анімації "плавання".
 
     Методи:
-        update(): Анімація обертання монети.
-        draw(screen): Малює монету, якщо вона не зібрана.
+        update(): Оновлює стан монети, включаючи анімацію обертання та плавання.
+        draw(screen): Малює монету.
     """
 
     def __init__(self, x, y, floating=False):
+        """
+        Ініціалізує об'єкт монети.
+
+        Аргументи:
+            x (int): X-координата монети.
+            y (int): Y-координата монети.
+            floating (bool): Чи повинна монета "плавати" вгору-вниз. За замовчуванням False.
+        """
         self.base_x = x
         self.base_y = y
         self.floating = floating
@@ -165,11 +348,22 @@ class Coin:
         self.float_offset = 0
 
     def update(self):
+        """
+        Оновлює стан монети.
+
+        Якщо монета є "плаваючою", її Y-координата буде змінюватися по синусоїді.
+        """
         if self.floating:
             self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)
             self.rect.y = self.base_y + self.float_offset
 
     def draw(self, screen):
+        """
+        Малює монету на екрані.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій буде малюватися монета.
+        """
         screen.blit(coin_icon, (self.rect.x, self.rect.y))
 
 
@@ -177,30 +371,35 @@ class Player:
     """
     Клас гравця у 2D платформері.
 
+    Відповідає за рух гравця, колізії, здоров'я та очки.
+
     Атрибути:
         rect (pygame.Rect): Прямокутник, що описує положення та розмір гравця.
-        vel_y (int): Вертикальна швидкість гравця.
         vel_x (int): Горизонтальна швидкість гравця.
+        vel_y (int): Вертикальна швидкість гравця (включаючи гравітацію).
         on_ground (bool): Чи знаходиться гравець на землі.
-        score (int): Кількість зібраних монет.
         health (int): Кількість життів гравця.
-        last_hit_time (int): Час останнього урону від шипів (для невразливості).
-        facing_left (bool): Напрямок обличчям гравця (вліво або вправо).
-        jump_sound (pygame.mixer.Sound): Звук стрибка.
-        coin_sound (pygame.mixer.Sound): Звук підняття монети.
-        hit_sound (pygame.mixer.Sound): Звук урону.
+        score (int): Кількість зібраних монет.
+        animation_counter (int): Лічильник для анімації руху гравця.
+        facing_left (bool): Напрямок, в який дивиться гравець (True для ліворуч).
+        invincible (bool): Чи є гравець тимчасово невразливим після отримання урону.
+        invincibility_timer (int): Таймер невразливості.
+        is_running_sound_playing (bool): Флаг, що вказує, чи відтворюється звук бігу.
 
     Методи:
-        jump(): Викликає стрибок, якщо гравець на землі.
-        move(platforms): Рух гравця з урахуванням платформи та фізики.
-        check_collision(coins, spikes): Перевірка зіткнень з монетами та шипами.
-        update_invincibility(): Оновлення стану невразливості.
-        draw(screen): Малює гравця на екрані.
-        draw_health(screen): Малює шкалу здоров’я.
-        draw_score(screen): Малює лічильник очок.
+        move(platforms): Обробляє рух гравця та колізії з платформами.
+        jump(): Запускає стрибок гравця, якщо він на землі.
+        check_collision(coins, spikes): Перевіряє зіткнення з монетами та шипами, оновлює здоров'я та очки.
+        draw(screen): Малює гравця на екрані, вибираючи відповідну анімацію.
+        draw_health(screen): Малює шкалу здоров'я гравця.
+        draw_score(screen): Малює лічильник очок гравця.
+        update_invincibility(): Оновлює стан невразливості гравця.
     """
 
     def __init__(self):
+        """
+        Ініціалізує об'єкт гравця з початковими значеннями.
+        """
         self.rect = pygame.Rect(100, 700, 40, 50)
         self.vel_x = 0
         self.vel_y = 0
@@ -214,6 +413,15 @@ class Player:
         self.is_running_sound_playing = False
 
     def move(self, platforms):
+        """
+        Обробляє рух гравця та колізії з платформами.
+
+        Застосовує гравітацію, обробляє горизонтальний і вертикальний рух,
+        а також взаємодію з різними типами платформ.
+
+        Аргументи:
+            platforms (list): Список об'єктів Platform у поточному рівні.
+        """
         self.vel_y += 1
         if self.vel_y > 10:
             self.vel_y = 10
@@ -258,11 +466,29 @@ class Player:
             self.rect.y += dy
 
     def jump(self):
+        """
+        Змушує гравця стрибнути, якщо він знаходиться на землі.
+
+        Відтворює звук стрибка.
+        """
         if self.on_ground:
             self.vel_y = -23
             jump_sound.play()
 
     def check_collision(self, coins, spikes):
+        """
+        Перевіряє зіткнення гравця з монетами та шипами.
+
+        Збирає монети, завдає шкоди від шипів (з урахуванням невразливості)
+        та обробляє падіння гравця за межі екрану.
+
+        Аргументи:
+            coins (list): Список об'єктів Coin.
+            spikes (list): Список об'єктів Spike.
+
+        Повертає:
+            bool: True, якщо гра закінчується (здоров'я гравця <= 0), інакше False.
+        """
         for coin in coins[:]:
             if self.rect.colliderect(coin.rect):
                 coins.remove(coin)
@@ -290,6 +516,15 @@ class Player:
         return False
 
     def draw(self, screen):
+        """
+        Малює гравця на екрані.
+
+        Вибирає відповідне зображення (стрибок, ходьба, бездіяльність)
+        та обробляє анімацію руху та відтворення звуку бігу.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій буде малюватися гравець.
+        """
         if self.vel_y != 0:
             if self.is_running_sound_playing:
                 run_sound.stop()
@@ -321,14 +556,31 @@ class Player:
             screen.blit(player_idle, (self.rect.x, self.rect.y))
 
     def draw_health(self, screen):
+        """
+        Малює шкалу здоров'я гравця на екрані.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій буде малюватися здоров'я.
+        """
         health_text = font.render(f"Здоров'я: {self.health}", True, BLACK)
         screen.blit(health_text, (10, 10))
 
     def draw_score(self, screen):
+        """
+        Малює лічильник очок гравця на екрані.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій будуть малюватися очки.
+        """
         score_text = font.render(f"Бали: {self.score}", True, BLACK)
         screen.blit(score_text, (WIDTH - 150, 10))
 
     def update_invincibility(self):
+        """
+        Оновлює таймер невразливості гравця.
+
+        Після закінчення таймера гравець знову стає вразливим.
+        """
         if self.invincible:
             self.invincibility_timer -= 1
             if self.invincibility_timer <= 0:
@@ -336,11 +588,43 @@ class Player:
 
 
 class Button:
+    """
+    Клас, що представляє інтерактивну кнопку.
+
+    Використовується для елементів меню.
+
+    Атрибути:
+        rect (pygame.Rect): Прямокутник, що визначає положення та розмір кнопки.
+        text (str): Текст, що відображається на кнопці.
+
+    Методи:
+        draw(screen): Малює кнопку на екрані.
+        is_clicked(pos): Перевіряє, чи було натиснуто кнопку за заданими координатами.
+    """
+
     def __init__(self, x, y, w, h, text):
+        """
+        Ініціалізує об'єкт кнопки.
+
+        Аргументи:
+            x (int): X-координата верхнього лівого кута кнопки.
+            y (int): Y-координата верхнього лівого кута кнопки.
+            w (int): Ширина кнопки.
+            h (int): Висота кнопки.
+            text (str): Текст, що відображається на кнопці.
+        """
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
 
     def draw(self, screen):
+        """
+        Малює кнопку на екрані.
+
+        Кнопка має сірий фон, чорну рамку та центрований текст.
+
+        Аргументи:
+            screen (pygame.Surface): Поверхня, на якій буде малюватися кнопка.
+        """
         pygame.draw.rect(screen, GRAY, self.rect)
         pygame.draw.rect(screen, BLACK, self.rect, 2)
         text_surf = font.render(self.text, True, BLACK)
@@ -348,10 +632,25 @@ class Button:
         screen.blit(text_surf, text_rect)
 
     def is_clicked(self, pos):
+        """
+        Перевіряє, чи було натиснуто кнопку за заданими координатами.
+
+        Аргументи:
+            pos (tuple): Кортеж (x, y) координат кліку миші.
+
+        Повертає:
+            bool: True, якщо координати знаходяться в межах кнопки, інакше False.
+        """
         return self.rect.collidepoint(pos)
 
 
+# --- Функції для меню ---
 def show_menu():
+    """
+    Відображає головне меню гри.
+
+    Дозволяє гравцеві почати гру або вийти з неї.
+    """
     start_button = Button(WIDTH // 2 - 100, HEIGHT // 2 - 60, 200, 50, "Розпочати гру")
     quit_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, 200, 50, "Вихід")
 
@@ -378,6 +677,14 @@ def show_menu():
 
 
 def show_game_over_menu():
+    """
+    Відображає меню "Гру закінчено".
+
+    Пропонує гравцеві спробувати знову або вийти з гри.
+
+    Повертає:
+        bool: True, якщо гравець обрав "Спробувати знову", інакше False.
+    """
     retry_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, 200, 50, "Спробувати знову")
     quit_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, 200, 50, "Вихід")
 
@@ -403,6 +710,17 @@ def show_game_over_menu():
 
 
 def show_level_up_menu(level_number):
+    """
+    Відображає меню після проходження рівня.
+
+    Дозволяє гравцеві перейти до наступного рівня або вийти з гри.
+
+    Аргументи:
+        level_number (int): Номер пройденого рівня.
+
+    Повертає:
+        bool: True, якщо гравець обрав "Далі", інакше False.
+    """
     next_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, 200, 50, "Далі")
     quit_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, 200, 50, "Вийти")
 
@@ -428,6 +746,11 @@ def show_level_up_menu(level_number):
 
 
 def show_victory_screen():
+    """
+    Відображає екран перемоги після проходження всіх рівнів.
+
+    Дозволяє гравцеві вийти з гри.
+    """
     quit_button = Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, 200, 50, "Вийти")
 
     while True:
@@ -449,6 +772,7 @@ def show_victory_screen():
                     exit()
 
 
+# --- Дані рівнів ---
 levels = [
     # Рівень 1 — збалансований стартовий рівень з кількома викликами
     {
@@ -563,112 +887,6 @@ levels = [
 ]
 
 
-def main():
-    show_menu()
-
-    current_level = 0
-    level_data = levels[current_level]
-    platforms = level_data["platforms"]
-    coins = level_data["coins"]
-    door = level_data["door"]
-    spikes = level_data.get("spikes", [])
-
-    player = Player()
-    clock = pygame.time.Clock()
-    running = True
-
-    font = pygame.font.SysFont("Arial", 36)
-    message_timer = 0
-    message_text = ""
-
-    while running:
-        clock.tick(60)
-        screen.fill(WHITE)
-        screen.blit(background, (0, 0))
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.vel_x = -10
-                    player.facing_left = True
-                elif event.key == pygame.K_RIGHT:
-                    player.vel_x = 10
-                    player.facing_left = False
-                elif event.key == pygame.K_UP:
-                    player.jump()
-
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.vel_x < 0:
-                    player.vel_x = 0
-                elif event.key == pygame.K_RIGHT and player.vel_x > 0:
-                    player.vel_x = 0
-
-        for platform in platforms:
-            platform.update()
-            platform.draw(screen)
-
-        for spike in spikes:
-            spike.draw(screen)
-
-        for coin in coins:
-            coin.update()
-            coin.draw(screen)
-
-        player.move(platforms)
-        game_over = player.check_collision(coins, spikes)
-        player.update_invincibility()
-        player.draw(screen)
-        player.draw_health(screen)
-        player.draw_score(screen)
-
-        screen.blit(door_icon, (door.x, door.y))
-
-        if player.rect.colliderect(door):
-            if len(coins) == 0:
-                level_up_sound.play()
-                if not show_level_up_menu(current_level + 1):
-                    running = False
-                else:
-                    current_level += 1
-                    if current_level >= len(levels):
-                        show_victory_screen()
-                        running = False
-                    else:
-                        level_data = levels[current_level]
-                        platforms = level_data["platforms"]
-                        coins = level_data["coins"]
-                        door = level_data["door"]
-                        spikes = level_data.get("spikes", [])
-                        player = Player()
-            else:
-                message_text = "Збери всі монети, щоб перейти далі!"
-                message_timer = 120
-
-        # Показ повідомлення
-        if message_timer > 0 and message_text:
-            text_surface = font.render(message_text, True, (255, 0, 0))
-            screen.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, 50))
-            message_timer -= 1
-
-        if game_over:
-            if show_game_over_menu():
-                current_level = 0
-                level_data = levels[current_level]
-                platforms = level_data["platforms"]
-                coins = level_data["coins"]
-                door = level_data["door"]
-                spikes = level_data.get("spikes", [])
-                player = Player()
-            else:
-                running = False
-
-        pygame.display.flip()
-
-    pygame.quit()
-
-
+# --- Точка входу в програму ---
 if __name__ == "__main__":
     main()

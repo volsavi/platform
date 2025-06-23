@@ -4,6 +4,10 @@ import random
 
 pygame.init()
 
+font = pygame.font.SysFont("Arial", 36)
+message_timer = 0   # тривалість показу повідомлення
+message_text = ""
+
 coin_sound = pygame.mixer.Sound("coin.wav")
 jump_sound = pygame.mixer.Sound("jump.wav")
 run_sound = pygame.mixer.Sound("run.wav")
@@ -137,7 +141,6 @@ class Spike:
         screen.blit(spike_img, (self.rect.x, self.rect.y))
 
 
-
 class Coin:
     """
     Клас монети, яку гравець може збирати.
@@ -153,6 +156,7 @@ class Coin:
         update(): Анімація обертання монети.
         draw(screen): Малює монету, якщо вона не зібрана.
     """
+
     def __init__(self, x, y, floating=False):
         self.base_x = x
         self.base_y = y
@@ -162,7 +166,7 @@ class Coin:
 
     def update(self):
         if self.floating:
-            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)  
+            self.float_offset = 5 * math.sin(pygame.time.get_ticks() / 500)
             self.rect.y = self.base_y + self.float_offset
 
     def draw(self, screen):
@@ -213,6 +217,8 @@ class Player:
         self.vel_y += 1
         if self.vel_y > 10:
             self.vel_y = 10
+
+        # Горизонтальний рух
         self.rect.x += self.vel_x
 
         for platform in platforms:
@@ -222,8 +228,10 @@ class Player:
                 elif self.vel_x < 0:
                     self.rect.left = platform.rect.right
 
+        # Вертикальний рух
         self.rect.y += self.vel_y
         self.on_ground = False
+        landed_on_platform = None
 
         for platform in platforms:
             if platform.active and self.rect.colliderect(platform.rect):
@@ -231,9 +239,23 @@ class Player:
                     self.rect.bottom = platform.rect.top
                     self.vel_y = 0
                     self.on_ground = True
+                    landed_on_platform = platform
                 elif self.vel_y < 0:
                     self.rect.top = platform.rect.bottom
                     self.vel_y = 0
+
+        # Якщо стоїмо на платформі, рухаємося разом із нею
+        if self.on_ground and landed_on_platform and landed_on_platform.moving:
+            dx = dy = 0
+            if landed_on_platform.diagonal:
+                dx = landed_on_platform.move_speed * landed_on_platform.direction
+                dy = landed_on_platform.move_speed * landed_on_platform.direction
+            elif landed_on_platform.vertical:
+                dy = landed_on_platform.move_speed * landed_on_platform.direction
+            else:
+                dx = landed_on_platform.move_speed * landed_on_platform.direction
+            self.rect.x += dx
+            self.rect.y += dy
 
     def jump(self):
         if self.on_ground:
@@ -254,6 +276,8 @@ class Player:
                     damage_sound.play()
                     self.invincible = True
                     self.invincibility_timer = 60 * 2  # 2 секунди
+                    if self.health <= 0:
+                        return True  # гра закінчується
 
         if self.rect.bottom > HEIGHT:
             self.health -= 1
@@ -426,99 +450,114 @@ def show_victory_screen():
 
 
 levels = [
-    # Новий рівень 1 — рухомі платформи горизонтально і пульсуючі, багато монет
+    # Рівень 1 — збалансований стартовий рівень з кількома викликами
     {
         "platforms": [
-            Platform(0, 770, 1200, 30),
-            Platform(150, 650, moving=True, move_range=250, move_speed=4),
-            Platform(500, 600, pulsate=True),
-            Platform(800, 550, moving=True, move_range=150, move_speed=3, vertical=True),
-            Platform(1050, 500),
+            Platform(0, HEIGHT - 40, 120, 20),
+            Platform(150, 660, 120, 20),
+            Platform(300, 600, 120, 20, moving=True, move_range=150, move_speed=3),
+            Platform(500, 550, 120, 20),
+            Platform(650, 500, 120, 20, pulsate=True),
+            Platform(850, 470, 120, 20, temporary=True),
+            Platform(1050, 430, 120, 20),
+            Platform(700, 420, 120, 20, moving=True, move_range=120, move_speed=3, vertical=True),
+            Platform(400, 470, 120, 20),
+            Platform(300, 400, 120, 20),
         ],
         "coins": [
-            Coin(170, 610, floating=True),
-            Coin(520, 560),
-            Coin(810, 510, floating=True),
-            Coin(1070, 460),
-            Coin(300, 700),
+            Coin(170, 620), Coin(320, 560), Coin(520, 510),
+            Coin(670, 460), Coin(870, 430), Coin(1070, 390),
+            Coin(720, 380), Coin(420, 430), Coin(310, 360)
         ],
-        "door": pygame.Rect(1150, 430, 50, 70),
+        "door": pygame.Rect(1050, 430 - 70, 50, 70),  # Стоїть на платформі 1050,430 (20 висота платформи)
         "spikes": [
-            Spike(400, 750),
-            Spike(750, 730),
-            Spike(1000, 480),
+            Spike(300, 600 - 40), Spike(850, 470 - 40), Spike(400, 470 - 40)
         ],
     },
 
-    # Новий рівень 2 — тимчасові платформи і діагональні рухомі платформи
+    # Рівень 2 — складніший, більше рухомих платформ та перепадів висоти
     {
         "platforms": [
-            Platform(0, 770, 1200, 30),
-            Platform(100, 650, temporary=True),
-            Platform(350, 600, moving=True, move_range=100, move_speed=3, diagonal=True),
-            Platform(600, 550, temporary=True, pulsate=True),
-            Platform(900, 500),
-            Platform(1100, 450),
+            Platform(0, HEIGHT - 40, 120, 20),
+            Platform(100, 670, 120, 20, pulsate=True),
+            Platform(250, 610, 120, 20),
+            Platform(420, 580, 120, 20, moving=True, move_range=180, move_speed=4),
+            Platform(600, 540, 120, 20, temporary=True),
+            Platform(800, 500, 120, 20),
+            Platform(1000, 460, 120, 20, pulsate=True),
+            Platform(750, 420, 120, 20),
+            Platform(500, 400, 120, 20),
+            Platform(300, 370, 120, 20, moving=True, move_range=120, move_speed=2, diagonal=True),
         ],
         "coins": [
-            Coin(120, 610),
-            Coin(370, 560, floating=True),
-            Coin(620, 510),
-            Coin(920, 460, floating=True),
-            Coin(1120, 410),
+            Coin(130, 640), Coin(270, 580), Coin(450, 550), Coin(620, 500),
+            Coin(820, 460), Coin(1020, 420), Coin(770, 390), Coin(510, 370), Coin(310, 340)
         ],
-        "door": pygame.Rect(1150, 400, 50, 70),
+        "door": pygame.Rect(1000, 460 - 70, 50, 70),  # Стоїть на платформі 1000,460
         "spikes": [
-            Spike(550, 740),
-            Spike(850, 740),
+            Spike(250, 610 - 40), Spike(800, 500 - 40), Spike(500, 400 - 40)
         ],
     },
 
-    # Новий рівень 3 — складні платформи з циклічним зникненням і вертикальним рухом
+    # Рівень 3 — комбінація всіх типів платформ
     {
         "platforms": [
-            Platform(0, 770, 1200, 30),
-            Platform(200, 650, disappear_cycle=(1500, 1500)),
-            Platform(450, 600, moving=True, move_range=200, move_speed=4, vertical=True),
-            Platform(750, 550, pulsate=True),
-            Platform(1000, 500),
+            Platform(0, HEIGHT - 40, 120, 20),
+            Platform(150, 680, 120, 20, disappear_cycle=(1500, 1500)),
+            Platform(350, 620, 120, 20, pulsate=True),
+            Platform(550, 580, 120, 20, moving=True, move_range=150, move_speed=3),
+            Platform(750, 550, 120, 20),
+            Platform(950, 510, 120, 20, temporary=True),
+            Platform(1150, 470, 120, 20),
+            Platform(900, 420, 120, 20, moving=True, move_range=100, move_speed=2, vertical=True),
+            Platform(650, 390, 120, 20, pulsate=True),
+            Platform(400, 360, 120, 20),
         ],
         "coins": [
-            Coin(220, 610),
-            Coin(470, 560, floating=True),
-            Coin(770, 510),
-            Coin(1020, 460, floating=True),
+            Coin(170, 640), Coin(370, 590), Coin(570, 540),
+            Coin(770, 500), Coin(970, 460), Coin(1170, 420),
+            Coin(920, 390), Coin(670, 360), Coin(420, 330)
         ],
-        "door": pygame.Rect(1150, 430, 50, 70),
+        "door": pygame.Rect(1150, 470 - 70, 50, 70),  # Стоїть на платформі 1150,470
         "spikes": [
-            Spike(600, 740),
-            Spike(800, 740),
+            Spike(750, 550 - 40), Spike(950, 510 - 40), Spike(400, 360 - 40)
         ],
     },
 
-    # Новий рівень 4 — комбінація рухомих і пульсуючих платформ, багато шипів
+    # Рівень 4 — більше рухомих, пульсуючих та тимчасових платформ
     {
         "platforms": [
-            Platform(0, 770, 1200, 30),
-            Platform(150, 650, moving=True, move_range=150, move_speed=3),
-            Platform(400, 600, pulsate=True),
-            Platform(700, 550, moving=True, move_range=100, move_speed=2, vertical=True),
-            Platform(950, 500),
-            Platform(1150, 450),
+            Platform(0, HEIGHT - 40, 120, 20),
+            Platform(120, 670, 120, 20, moving=True, move_range=180, move_speed=3),
+            Platform(350, 630, 120, 20, pulsate=True),
+            Platform(600, 590, 120, 20, moving=True, move_range=150, move_speed=4, vertical=True),
+            Platform(850, 550, 120, 20, temporary=True),
+            Platform(1100, 510, 120, 20),
+            Platform(1300, 470, 120, 20, moving=True, move_range=120, move_speed=2, diagonal=True),
+            Platform(950, 530, 120, 20),
+            Platform(400, 570, 120, 20),
+            Platform(700, 590, 120, 20, pulsate=True),
+            Platform(1000, 480, 120, 20),
         ],
         "coins": [
-            Coin(170, 610),
-            Coin(420, 560, floating=True),
-            Coin(720, 510),
-            Coin(970, 460, floating=True),
-            Coin(1170, 410),
+            Coin(140, 630),
+            Coin(370, 590, floating=True),
+            Coin(620, 550),
+            Coin(870, 510, floating=True),
+            Coin(1120, 470),
+            Coin(1150, 430),
+            Coin(420, 530),
+            Coin(710, 590),
+            Coin(1020, 460),
         ],
-        "door": pygame.Rect(1150, 400, 50, 70),
+        "door": pygame.Rect(1100, 510 - 70, 50, 70),  # Стоїть на платформі 1100,510
         "spikes": [
-            Spike(300, 750),
-            Spike(550, 740),
-            Spike(850, 730),
-            Spike(1100, 720),
+            Spike(300, 670 - 40),
+            Spike(450, 630 - 40),
+            Spike(600, 590 - 40),
+            Spike(800, 550 - 40),
+            Spike(950, 530 - 40),
+            Spike(1100, 510 - 40),
         ],
     },
 ]
@@ -537,6 +576,10 @@ def main():
     player = Player()
     clock = pygame.time.Clock()
     running = True
+
+    font = pygame.font.SysFont("Arial", 36)
+    message_timer = 0
+    message_text = ""
 
     while running:
         clock.tick(60)
@@ -583,6 +626,33 @@ def main():
 
         screen.blit(door_icon, (door.x, door.y))
 
+        if player.rect.colliderect(door):
+            if len(coins) == 0:
+                level_up_sound.play()
+                if not show_level_up_menu(current_level + 1):
+                    running = False
+                else:
+                    current_level += 1
+                    if current_level >= len(levels):
+                        show_victory_screen()
+                        running = False
+                    else:
+                        level_data = levels[current_level]
+                        platforms = level_data["platforms"]
+                        coins = level_data["coins"]
+                        door = level_data["door"]
+                        spikes = level_data.get("spikes", [])
+                        player = Player()
+            else:
+                message_text = "Збери всі монети, щоб перейти далі!"
+                message_timer = 120
+
+        # Показ повідомлення
+        if message_timer > 0 and message_text:
+            text_surface = font.render(message_text, True, (255, 0, 0))
+            screen.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, 50))
+            message_timer -= 1
+
         if game_over:
             if show_game_over_menu():
                 current_level = 0
@@ -594,23 +664,6 @@ def main():
                 player = Player()
             else:
                 running = False
-
-        if player.rect.colliderect(door):
-            level_up_sound.play()
-            if not show_level_up_menu(current_level + 1):
-                running = False
-            else:
-                current_level += 1
-                if current_level >= len(levels):
-                    show_victory_screen()
-                    running = False
-                else:
-                    level_data = levels[current_level]
-                    platforms = level_data["platforms"]
-                    coins = level_data["coins"]
-                    door = level_data["door"]
-                    spikes = level_data.get("spikes", [])
-                    player = Player()
 
         pygame.display.flip()
 
